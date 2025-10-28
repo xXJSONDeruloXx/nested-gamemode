@@ -14,9 +14,11 @@ Launch Steam's Game Mode UI inside a nested Gamescope window on any Linux distri
 ```bash
 git clone https://github.com/xXJSONDeruloXx/nested-gamemode.git
 cd nested-gamemode
-./setup.sh                # installs to ~/.local/bin and ~/.local/share/applications
+sudo ./setup.sh                # installs to ~/.local/bin and ~/.local/share/applications
 sudo ./setup.sh --system  # optional system-wide install
 ```
+
+Add `--no-refresh` if your desktop database update hangs.
 
 ## Uninstall
 
@@ -24,6 +26,8 @@ sudo ./setup.sh --system  # optional system-wide install
 ./uninstall.sh                # removes user install
 sudo ./uninstall.sh --system  # removes system-wide install
 ```
+
+`--no-refresh` is also available during uninstall.
 
 ## Usage
 

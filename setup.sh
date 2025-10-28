@@ -3,21 +3,25 @@ set -euo pipefail
 
 usage() {
     cat <<EOF
-Usage: $0 [--user|--system]
+Usage: $0 [--user|--system] [--no-refresh]
 
 Install Nested Gamemode launcher either for the current user (default) or system-wide.
+Desktop database refresh can be skipped with --no-refresh if it hangs on your system.
 EOF
 }
 
 scope="user"
-if [[ $# -gt 0 ]]; then
+refresh_desktop=true
+while [[ $# -gt 0 ]]; do
     case "$1" in
         --user) scope="user" ;;
         --system) scope="system" ;;
+        --no-refresh) refresh_desktop=false ;;
         -h|--help) usage; exit 0 ;;
         *) usage; exit 1 ;;
     esac
-fi
+    shift
+done
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
@@ -36,12 +40,16 @@ fi
 install -Dm755 "$SCRIPT_DIR/gamemode-nested" "$BIN_DIR/gamemode-nested"
 install -Dm644 "$SCRIPT_DIR/gamemode-nested.desktop" "$DESKTOP_DIR/gamemode-nested.desktop"
 
-if command -v update-desktop-database >/dev/null 2>&1; then
-    update-desktop-database "${DESKTOP_DIR%/*}" >/dev/null 2>&1 || true
-fi
+if [[ "$refresh_desktop" == true ]]; then
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        timeout 15 update-desktop-database "${DESKTOP_DIR%/*}" >/dev/null 2>&1 || true
+    fi
 
-if command -v xdg-desktop-menu >/dev/null 2>&1; then
-    xdg-desktop-menu forceupdate >/dev/null 2>&1 || true
+    if command -v xdg-desktop-menu >/dev/null 2>&1; then
+        timeout 15 xdg-desktop-menu forceupdate >/dev/null 2>&1 || true
+    fi
+else
+    echo "Skipping desktop database refresh (--no-refresh)."
 fi
 
 echo "Nested Gamemode installed to:"
