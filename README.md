@@ -13,6 +13,10 @@ If testing a Decky plugin that depends on a game running, then this is a good wa
 
 ![QAM in-game](assets/running.png)
 
+Example of a plugin where testing while in-game is necessary:
+
+![in-game contextual plugin](assets/contextual.png)
+
 ## Requirements
 
 ### Required Dependencies
