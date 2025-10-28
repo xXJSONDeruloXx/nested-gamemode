@@ -36,3 +36,13 @@ sudo ./uninstall.sh --system  # removes system-wide install
 - Steam is stopped if it is already running, then restarted inside Gamescope.
 
 To customize the Steam executable or arguments, set `STEAM_EXECUTABLE` or `STEAM_ARGS` before running the launcher.
+
+## Debugging
+
+Set `NESTED_DEBUG=1` and optionally `NESTED_DEBUG_LOG=/path/to/log` before running to capture verbose output:
+
+```bash
+NESTED_DEBUG=1 gamemode-nested
+```
+
+The launcher echoes the full Gamescope command so you can replay it manually for troubleshooting.
