@@ -14,8 +14,15 @@ Launch Steam's Game Mode UI inside a nested Gamescope window on any Linux distri
 ```bash
 git clone https://github.com/xXJSONDeruloXx/nested-gamemode.git
 cd nested-gamemode
-sudo ./setup.sh           # installs to ~/.local/bin and ~/.local/share/applications
+./setup.sh                # installs to ~/.local/bin and ~/.local/share/applications
 sudo ./setup.sh --system  # optional system-wide install
+```
+
+## Uninstall
+
+```bash
+./uninstall.sh                # removes user install
+sudo ./uninstall.sh --system  # removes system-wide install
 ```
 
 ## Usage
