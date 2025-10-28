@@ -86,17 +86,29 @@ fi
 if pgrep -x steam >/dev/null 2>&1; then
     echo "Steam detected running. Attempting clean shutdown..."
     "$STEAM_BIN" steam://quit >/dev/null 2>&1 || "$STEAM_BIN" +quit >/dev/null 2>&1 || true
-    shutdown_start=$(date +%s)
-    shutdown_timeout=${STEAM_SHUTDOWN_TIMEOUT:-30}
-    while pgrep -x steam >/dev/null 2>&1; do
-        now=$(date +%s)
-        elapsed=$(( now - shutdown_start ))
-        if (( elapsed >= shutdown_timeout )); then
-            echo "Steam did not exit after $shutdown_timeout seconds; skipping shutdown wait."
-            break
-        fi
+    
+    # Wait briefly for clean shutdown
+    sleep 2
+    
+    # If Steam is still running, force kill it
+    if pgrep -x steam >/dev/null 2>&1; then
+        echo "Steam did not exit cleanly. Force killing Steam processes..."
+        pkill -TERM steam 2>/dev/null || true
         sleep 1
-    done
+        
+        # If still running, use SIGKILL
+        if pgrep -x steam >/dev/null 2>&1; then
+            echo "Using SIGKILL to terminate Steam..."
+            pkill -KILL steam 2>/dev/null || true
+            sleep 1
+        fi
+    fi
+    
+    if pgrep -x steam >/dev/null 2>&1; then
+        echo "Warning: Steam processes may still be running."
+    else
+        echo "Steam successfully terminated."
+    fi
 fi
 
 if [[ -z "${XDG_RUNTIME_DIR:-}" ]]; then
