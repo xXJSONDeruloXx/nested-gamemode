@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Base gamescope args for gamemode
+GAMESCOPE_CMD="gamescope -e --mangoapp --adaptive-sync --force-grab-cursor"
+
+require_command() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        printf 'Error: Required command "%s" not found in PATH\n' "$1" >&2
+        exit 1
+    fi
+}
+
+require_command "gamescope"
+require_command "yad"
+
+STEAM_BIN=${STEAM_EXECUTABLE:-steam}
+if ! command -v "$STEAM_BIN" >/dev/null 2>&1; then
+    printf 'Error: Unable to locate Steam executable "%s". Set STEAM_EXECUTABLE if Steam is installed elsewhere.\n' "$STEAM_BIN" >&2
+    exit 1
+fi
+
+default_args="-gamepadui -steamos3 -steampal"
+steam_args_string=${STEAM_ARGS:-$default_args}
+read -r -a steam_args <<< "$steam_args_string"
+
+GAMEMODE_CONFIG=$(
+    yad --title="Configure Gamemode" \
+        --text="Please configure Nested Gamemode" \
+        --image="steam" \
+        --button="Launch Gamemode" \
+        --form --separator="," \
+        --field="Max FPS in frame limiter: ":NUM "60" \
+        --field="Window width:":NUM 1280 \
+        --field="Window height:":NUM 720 \
+        --field="Enable HDR (hardware must support it)":CHK \
+        --field="":LBL \
+        --field="THIS IS NOT THE INTENDED WAY TO USE STEAM GAMEMODE.
+* Steam will be restarted once configuration is done.
+* Some features may not work properly in this mode.
+* You will have to re-enable bluetooth once Nested Gamemode has started.
+* Enable Force Composite in the Steam Gamemode developer settings to fix graphical issues.
+* Steam has to be closed through the tray icon to exit.":LBL
+) || true
+
+if [[ -z "${GAMEMODE_CONFIG:-}" ]]; then
+    echo "Nested Gamemode launch canceled."
+    exit 0
+fi
+
+IFS=, read -r MAX_FPS GAMEMODE_WIDTH GAMEMODE_HEIGHT GAMEMODE_HDR <<< "$GAMEMODE_CONFIG"
+
+GAMEMODE_WIDTH=${GAMEMODE_WIDTH:-1280}
+GAMEMODE_HEIGHT=${GAMEMODE_HEIGHT:-720}
+MAX_FPS=${MAX_FPS:-0}
+
+if [[ -n "$MAX_FPS" && "$MAX_FPS" != "0" ]]; then
+    GAMESCOPE_CMD+=" -r $MAX_FPS"
+fi
+if [[ "$GAMEMODE_HDR" == "TRUE" ]]; then
+    GAMESCOPE_CMD+=" --hdr-enabled"
+fi
+
+if pgrep -x steam >/dev/null 2>&1; then
+    "$STEAM_BIN" steam://quit >/dev/null 2>&1 || "$STEAM_BIN" +quit >/dev/null 2>&1 || true
+    while pgrep -x steam >/dev/null 2>&1; do
+        sleep 1
+    done
+fi
+
+if [[ -z "${XDG_RUNTIME_DIR:-}" ]]; then
+    echo "Error: XDG_RUNTIME_DIR is not set; cannot create gamescope sockets." >&2
+    exit 1
+fi
+
+tmpdir=$(mktemp -p "$XDG_RUNTIME_DIR" -d -t gamescope.XXXXXXX)
+cleanup() {
+    if [[ -n "${tmpdir:-}" && -d "$tmpdir" ]]; then
+        rm -rf "$tmpdir"
+    fi
+}
+trap cleanup EXIT
+
+stats="$tmpdir/stats.pipe"
+export GAMESCOPE_STATS="$stats"
+mkfifo -- "$stats"
+
+$GAMESCOPE_CMD \
+    -w "$GAMEMODE_WIDTH" -h "$GAMEMODE_HEIGHT" \
+    -W "$GAMEMODE_WIDTH" -H "$GAMEMODE_HEIGHT" \
+    -- "$STEAM_BIN" "${steam_args[@]}"
