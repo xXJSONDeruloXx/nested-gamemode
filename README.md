@@ -3,6 +3,16 @@
 
 Launch Steam's Game Mode UI inside a nested Gamescope window on any Linux distribution. Handy for testing without logging out of your desktop session.
 
+## Why Do I want Nested Gamemode?
+
+I primarily use this to test Decky Loader plugins and more accurately see how a SteamDeck will behave when testing plugins. The nice thing about Nested Gamemode session is the QAM (Quick Access Menu) can be summoned both from within the Steam Big Picture UI, but also while a game is running (Nexus + A on a controller). 
+
+![initial setup](assets/install.png)
+
+If testing a Decky plugin that depends on a game running, then this is a good way to see the QAM interact with the game as a single screen, almost like a steam deck in a single window!
+
+![QAM in-game](assets/running.png)
+
 ## Requirements
 
 ### Required Dependencies

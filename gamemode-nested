@@ -3,7 +3,7 @@ set -euo pipefail
 
 default_gamescope_cmd=false
 if [[ -z ${GAMESCOPE_CMD+x} || -z "${GAMESCOPE_CMD-}" ]]; then
-    GAMESCOPE_CMD="gamescope -e --adaptive-sync"
+    GAMESCOPE_CMD="gamescope -e --adaptive-sync --force-grab-cursor"
     # Add mangoapp if available
     if command -v mangoapp >/dev/null 2>&1; then
         GAMESCOPE_CMD+=" --mangoapp"
