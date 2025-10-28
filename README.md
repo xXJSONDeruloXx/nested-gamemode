@@ -1,5 +1,5 @@
 # Nested Steam Gamemode
-> **Credit:** All credit goes to [hikariknight](https://github.com/HikariKnight) for the excellent [`bazzite-dx` PR](https://github.com/ublue-os/bazzite-dx/pull/125/files#diff-95375a553164600a7d4fed6d71470c5acd8aaee35a96ac0f99bf0ff7461be5a3R1-R67) that introduced this feature.
+> credit to [hikariknight](https://github.com/HikariKnight) for the excellent [`bazzite-dx` PR](https://github.com/ublue-os/bazzite-dx/pull/125/files#diff-95375a553164600a7d4fed6d71470c5acd8aaee35a96ac0f99bf0ff7461be5a3R1-R67) that introduced this feature.
 
 Launch Steam's Game Mode UI inside a nested Gamescope window on any Linux distribution. Handy for testing without logging out of your desktop session.
 
