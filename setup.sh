@@ -10,6 +10,67 @@ Desktop database refresh can be skipped with --no-refresh if it hangs on your sy
 EOF
 }
 
+# Check for required dependencies
+check_dependencies() {
+    local missing=()
+    local optional_missing=()
+    
+    if ! command -v gamescope >/dev/null 2>&1; then
+        missing+=("gamescope")
+    fi
+    
+    if ! command -v yad >/dev/null 2>&1; then
+        missing+=("yad")
+    fi
+    
+    if ! command -v steam >/dev/null 2>&1; then
+        missing+=("steam")
+    fi
+    
+    if ! command -v mangoapp >/dev/null 2>&1; then
+        optional_missing+=("mangohud (provides mangoapp)")
+    fi
+    
+    if [[ ${#missing[@]} -gt 0 ]]; then
+        echo "Error: Missing required dependencies:" >&2
+        for dep in "${missing[@]}"; do
+            echo "  - $dep" >&2
+        done
+        echo >&2
+        echo "Installation instructions by distribution:" >&2
+        echo >&2
+        echo "Arch Linux / Manjaro:" >&2
+        echo "  sudo pacman -S gamescope mangohud yad steam" >&2
+        echo >&2
+        echo "Fedora:" >&2
+        echo "  sudo dnf install gamescope mangohud yad steam" >&2
+        echo >&2
+        echo "Ubuntu / Debian:" >&2
+        echo "  sudo apt install gamescope mangohud yad steam" >&2
+        echo "  (Note: You may need to add repositories for gamescope)" >&2
+        echo >&2
+        echo "For other distributions, install the missing packages using your package manager." >&2
+        return 1
+    fi
+    
+    if [[ ${#optional_missing[@]} -gt 0 ]]; then
+        echo "Warning: Optional dependencies not found:" >&2
+        for dep in "${optional_missing[@]}"; do
+            echo "  - $dep (recommended for performance overlay)" >&2
+        done
+        echo >&2
+    fi
+    
+    return 0
+}
+
+echo "Checking dependencies..."
+if ! check_dependencies; then
+    exit 1
+fi
+echo "All dependencies found."
+echo
+
 scope="user"
 refresh_desktop=true
 while [[ $# -gt 0 ]]; do

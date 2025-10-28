@@ -5,9 +5,40 @@ Launch Steam's Game Mode UI inside a nested Gamescope window on any Linux distri
 
 ## Requirements
 
-- Steam client (`steam` command)
-- [Gamescope](https://github.com/ValveSoftware/gamescope)
-- [YAD](https://github.com/v1cont/yad) for the configuration dialog
+### Required Dependencies
+
+All of these must be installed before running the setup script:
+
+- **Steam** - The Steam client (`steam` command)
+- **Gamescope** - Valve's gaming compositor ([GitHub](https://github.com/ValveSoftware/gamescope))
+- **YAD** - Yet Another Dialog for the configuration UI ([GitHub](https://github.com/v1cont/yad))
+
+### Optional Dependencies
+
+- **MangoHud** - Performance overlay and monitoring (provides `mangoapp` binary, highly recommended)
+
+### Installation by Distribution
+
+**Arch Linux / Manjaro:**
+```bash
+sudo pacman -S gamescope mangohud yad steam
+```
+
+**Fedora:**
+```bash
+sudo dnf install gamescope mangohud yad steam
+```
+
+**Ubuntu / Debian:**
+```bash
+sudo apt install gamescope mangohud yad steam
+```
+*Note: Gamescope may require additional repositories or PPAs on Ubuntu/Debian*
+
+**Other Distributions:**
+Install the equivalent packages using your distribution's package manager.
+
+The setup script will check for all required dependencies and warn about optional ones if they are missing.
 
 ## Install
 
@@ -46,3 +77,11 @@ NESTED_DEBUG=1 gamemode-nested
 ```
 
 The launcher echoes the full Gamescope command so you can replay it manually for troubleshooting.
+
+On X11 sessions the launcher automatically appends `--backend sdl --nested` to Gamescope; set `GAMESCOPE_CMD` yourself to override the defaults entirely.
+
+If Steam takes too long to close before relaunch, override the shutdown wait (default 30s):
+
+```bash
+STEAM_SHUTDOWN_TIMEOUT=5 gamemode-nested
+```
