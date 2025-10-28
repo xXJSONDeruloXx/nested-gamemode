@@ -3,7 +3,7 @@ set -euo pipefail
 
 default_gamescope_cmd=false
 if [[ -z ${GAMESCOPE_CMD+x} || -z "${GAMESCOPE_CMD-}" ]]; then
-    GAMESCOPE_CMD="gamescope -e --adaptive-sync --force-grab-cursor"
+    GAMESCOPE_CMD="gamescope -e --adaptive-sync"
     # Add mangoapp if available
     if command -v mangoapp >/dev/null 2>&1; then
         GAMESCOPE_CMD+=" --mangoapp"
@@ -42,7 +42,7 @@ if ! command -v "$STEAM_BIN" >/dev/null 2>&1; then
     exit 1
 fi
 
-default_args="-gamepadui -steamos3 -steampal"
+default_args="-gamepadui -steamos3 -steampal -steampal"
 steam_args_string=${STEAM_ARGS:-$default_args}
 read -r -a steam_args <<< "$steam_args_string"
 
