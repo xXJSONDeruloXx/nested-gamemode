@@ -77,7 +77,7 @@ sudo ./uninstall.sh --system  # removes system-wide install
 ## Usage
 
 - Launch `Nested Steam Gamemode` from your desktop menu, or run `gamemode-nested`.
-- Configure frame limiter, window size, and HDR support via the dialog.
+- Configure frame limiter, window size, HDR, cursor grab, and SDL backend fallback via the dialog.
 - Steam is stopped if it is already running, then restarted inside Gamescope.
 
 To customize the Steam executable or arguments, set `STEAM_EXECUTABLE` or `STEAM_ARGS` before running the launcher.
@@ -92,7 +92,7 @@ NESTED_DEBUG=1 gamemode-nested
 
 The launcher echoes the full Gamescope command so you can replay it manually for troubleshooting.
 
-On X11 sessions the launcher automatically appends `--backend sdl --nested` to Gamescope; set `GAMESCOPE_CMD` yourself to override the defaults entirely.
+By default the launcher runs `gamescope -e --adaptive-sync` and enables MangoHud's `mangoapp` overlay automatically when present. Use the SDL fallback toggle in the UI for stubborn X11 sessions, or set `GAMESCOPE_CMD` yourself to override the defaults entirely.
 
 Example: `GAMESCOPE_CMD="gamescope -e --adaptive-sync --backend sdl" gamemode-nested`
 
