@@ -94,6 +94,8 @@ The launcher echoes the full Gamescope command so you can replay it manually for
 
 On X11 sessions the launcher automatically appends `--backend sdl --nested` to Gamescope; set `GAMESCOPE_CMD` yourself to override the defaults entirely.
 
+Example: `GAMESCOPE_CMD="gamescope -e --adaptive-sync --backend sdl" gamemode-nested`
+
 If Steam takes too long to close before relaunch, override the shutdown wait (default 30s):
 
 ```bash
