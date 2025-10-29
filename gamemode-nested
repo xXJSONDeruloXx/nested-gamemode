@@ -3,7 +3,7 @@ set -euo pipefail
 
 default_gamescope_cmd=false
 if [[ -z ${GAMESCOPE_CMD+x} || -z "${GAMESCOPE_CMD-}" ]]; then
-    GAMESCOPE_CMD="gamescope -e --adaptive-sync --force-grab-cursor"
+    GAMESCOPE_CMD="gamescope -e --adaptive-sync"
     # Add mangoapp if available
     if command -v mangoapp >/dev/null 2>&1; then
         GAMESCOPE_CMD+=" --mangoapp"
@@ -56,6 +56,7 @@ GAMEMODE_CONFIG=$(
         --field="Window width:":NUM 1280 \
         --field="Window height:":NUM 800 \
         --field="Enable HDR (hardware must support it)":CHK \
+        --field="Force grab cursor (fixes input issues in some games)":CHK \
         --field="":LBL \
         --field="THIS IS NOT THE INTENDED WAY TO USE STEAM GAMEMODE.
 * Steam will be restarted once configuration is done.
@@ -70,7 +71,16 @@ if [[ -z "${GAMEMODE_CONFIG:-}" ]]; then
     exit 0
 fi
 
-IFS=, read -r MAX_FPS GAMEMODE_WIDTH GAMEMODE_HEIGHT GAMEMODE_HDR <<< "$GAMEMODE_CONFIG"
+IFS=, read -r MAX_FPS GAMEMODE_WIDTH GAMEMODE_HEIGHT GAMEMODE_HDR FORCE_GRAB_CURSOR _LBL1 _LBL2 <<< "$GAMEMODE_CONFIG"
+
+if [[ "${NESTED_DEBUG:-0}" == "1" ]]; then
+    echo "DEBUG: GAMEMODE_CONFIG=$GAMEMODE_CONFIG"
+    echo "DEBUG: MAX_FPS=$MAX_FPS"
+    echo "DEBUG: GAMEMODE_WIDTH=$GAMEMODE_WIDTH"
+    echo "DEBUG: GAMEMODE_HEIGHT=$GAMEMODE_HEIGHT"
+    echo "DEBUG: GAMEMODE_HDR=$GAMEMODE_HDR"
+    echo "DEBUG: FORCE_GRAB_CURSOR=$FORCE_GRAB_CURSOR"
+fi
 
 GAMEMODE_WIDTH=${GAMEMODE_WIDTH:-1280}
 GAMEMODE_HEIGHT=${GAMEMODE_HEIGHT:-720}
@@ -81,6 +91,9 @@ if [[ -n "$MAX_FPS" && "$MAX_FPS" != "0" ]]; then
 fi
 if [[ "$GAMEMODE_HDR" == "TRUE" ]]; then
     GAMESCOPE_CMD+=" --hdr-enabled"
+fi
+if [[ "$FORCE_GRAB_CURSOR" == "TRUE" ]]; then
+    GAMESCOPE_CMD+=" --force-grab-cursor"
 fi
 
 if pgrep -x steam >/dev/null 2>&1; then
