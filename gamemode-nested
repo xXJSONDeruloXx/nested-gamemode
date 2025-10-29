@@ -1,19 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-default_gamescope_cmd=false
+show_error_dialog() {
+    local primary_message=$1
+    local secondary_message=${2-}
+    local dialog_text=$primary_message
+    if [[ -n $secondary_message ]]; then
+        printf -v dialog_text '%s\n\n%s' "$primary_message" "$secondary_message"
+    fi
+
+    set +e
+    yad --title="Nested Gamemode Error" \
+        --image="dialog-error" \
+        --button="gtk-ok" \
+        --text="$dialog_text" \
+        --width=380 \
+        --height=180 >/dev/null 2>&1 || true
+    set -e
+}
+
 if [[ -z ${GAMESCOPE_CMD+x} || -z "${GAMESCOPE_CMD-}" ]]; then
     GAMESCOPE_CMD="gamescope -e --adaptive-sync"
     # Add mangoapp if available
     if command -v mangoapp >/dev/null 2>&1; then
         GAMESCOPE_CMD+=" --mangoapp"
-    fi
-    default_gamescope_cmd=true
-fi
-
-if [[ "$default_gamescope_cmd" == true && "$GAMESCOPE_CMD" != *"--backend"* ]]; then
-    if [[ -z ${WAYLAND_DISPLAY:-} && -n ${DISPLAY:-} ]]; then
-        GAMESCOPE_CMD+=" --backend sdl"
     fi
 fi
 
@@ -57,6 +67,7 @@ GAMEMODE_CONFIG=$(
         --field="Window height:":NUM 800 \
         --field="Enable HDR (hardware must support it)":CHK \
         --field="Force grab cursor (fixes input issues in some games)":CHK \
+        --field="Use SDL backend with X11 fallback":CHK \
         --field="":LBL \
         --field="THIS IS NOT THE INTENDED WAY TO USE STEAM GAMEMODE.
 * Steam will be restarted once configuration is done.
@@ -71,7 +82,7 @@ if [[ -z "${GAMEMODE_CONFIG:-}" ]]; then
     exit 0
 fi
 
-IFS=, read -r MAX_FPS GAMEMODE_WIDTH GAMEMODE_HEIGHT GAMEMODE_HDR FORCE_GRAB_CURSOR _LBL1 _LBL2 <<< "$GAMEMODE_CONFIG"
+IFS=, read -r MAX_FPS GAMEMODE_WIDTH GAMEMODE_HEIGHT GAMEMODE_HDR FORCE_GRAB_CURSOR FORCE_SDL_BACKEND _LBL1 _LBL2 <<< "$GAMEMODE_CONFIG"
 
 if [[ "${NESTED_DEBUG:-0}" == "1" ]]; then
     echo "DEBUG: GAMEMODE_CONFIG=$GAMEMODE_CONFIG"
@@ -80,6 +91,7 @@ if [[ "${NESTED_DEBUG:-0}" == "1" ]]; then
     echo "DEBUG: GAMEMODE_HEIGHT=$GAMEMODE_HEIGHT"
     echo "DEBUG: GAMEMODE_HDR=$GAMEMODE_HDR"
     echo "DEBUG: FORCE_GRAB_CURSOR=$FORCE_GRAB_CURSOR"
+    echo "DEBUG: FORCE_SDL_BACKEND=$FORCE_SDL_BACKEND"
 fi
 
 GAMEMODE_WIDTH=${GAMEMODE_WIDTH:-1280}
@@ -94,6 +106,12 @@ if [[ "$GAMEMODE_HDR" == "TRUE" ]]; then
 fi
 if [[ "$FORCE_GRAB_CURSOR" == "TRUE" ]]; then
     GAMESCOPE_CMD+=" --force-grab-cursor"
+fi
+if [[ "$FORCE_SDL_BACKEND" == "TRUE" ]]; then
+    GAMESCOPE_CMD+=" --backend sdl"
+    if [[ -z ${SDL_VIDEODRIVER:-} ]]; then
+        export SDL_VIDEODRIVER=x11
+    fi
 fi
 
 if pgrep -x steam >/dev/null 2>&1; then
@@ -159,18 +177,24 @@ while (( attempt <= max_attempts )); do
         break
     fi
 
-    if [[ "$default_gamescope_cmd" == true && "$GAMESCOPE_CMD" != *"--backend sdl"* && -n ${DISPLAY:-} ]]; then
-        echo "Gamescope exited with code $exit_code. Retrying with --backend sdl."
-        GAMESCOPE_CMD+=" --backend sdl"
-        ((attempt++))
-        continue
-    fi
-
     break
 done
 
 if [[ $exit_code -ne 0 ]]; then
     echo "Nested Gamemode exited with error code $exit_code" >&2
+
+    retry_hint="Try enabling \"Use SDL backend with X11 fallback\" in the launcher if the issue persists."
+    if [[ ${FORCE_SDL_BACKEND:-FALSE} == "TRUE" ]]; then
+        retry_hint="SDL backend was already enabled. Try disabling it or launch from a terminal for more detail."
+    fi
+
+    log_hint="Run again with NESTED_DEBUG=1 to capture detailed logs."
+    if [[ -n ${LOG_FILE-} && -f ${LOG_FILE-} ]]; then
+        log_hint="Detailed logs saved to ${LOG_FILE}."
+    fi
+
+    printf -v error_details "%s\n\n%s" "$retry_hint" "$log_hint"
+    show_error_dialog "Nested Gamemode failed to start (exit code $exit_code)." "$error_details"
 else
     echo "Nested Gamemode exited cleanly."
 fi
