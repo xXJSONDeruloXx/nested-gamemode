@@ -12,7 +12,7 @@ show_error_dialog() {
     set +e
     yad --title="Nested Gamemode Error" \
         --image="dialog-error" \
-        --button="gtk-ok" \
+        --button="ok" \
         --text="$dialog_text" \
         --width=380 \
         --height=180 >/dev/null 2>&1 || true
@@ -188,13 +188,13 @@ if [[ $exit_code -ne 0 ]]; then
         retry_hint="SDL backend was already enabled. Try disabling it or launch from a terminal for more detail."
     fi
 
-    log_hint="Run again with NESTED_DEBUG=1 to capture detailed logs."
+    log_hint="Run again with \`NESTED_DEBUG=1 gamescope-nested\` to capture detailed logs."
     if [[ -n ${LOG_FILE-} && -f ${LOG_FILE-} ]]; then
         log_hint="Detailed logs saved to ${LOG_FILE}."
     fi
 
     printf -v error_details "%s\n\n%s" "$retry_hint" "$log_hint"
-    show_error_dialog "Nested Gamemode failed to start (exit code $exit_code)." "$error_details"
+    show_error_dialog "Nested Gamemode exited unexpectedly (exit code $exit_code)." "$error_details"
 else
     echo "Nested Gamemode exited cleanly."
 fi
